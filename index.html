@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tausif's Architecture Reading Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=EB+Garamond:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --ink: #1a1208; --paper: #faf8f3; --amber: #c8760a; --amber-pale: #fdf5e6;
+  --amber-light: #f5e6cc; --grey: #7a6f65; --grey-light: #e8e3dc;
+  --green: #1a4d2e; --green-pale: #ebf5ed; --slate: #3d3530;
+  --p0:#e8f5e9; --p1:#e3f2fd; --p2:#fff8e1; --p3:#fce4ec; --p4:#ede7f6; --p5:#f3e5f5;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'EB Garamond', serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 16px;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--ink);
+  color: #fff;
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+.header-title span { color: var(--amber); font-style: italic; }
+.header-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255,255,255,.5); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+
+.header-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+.stat { text-align: center; }
+.stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--amber); display: block; }
+.stat-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  background: #fff;
+  border-bottom: 2px solid var(--grey-light);
+  overflow-x: auto;
+  padding: 0 16px;
+}
+
+.tab {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  color: var(--grey);
+  white-space: nowrap;
+  transition: all .2s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.tab:hover { color: var(--ink); }
+.tab.active { color: var(--amber); border-bottom-color: var(--amber); font-weight: 500; }
+
+/* ── MAIN LAYOUT ── */
+.content { max-width: 1100px; margin: 0 auto; padding: 32px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── PHASE PROGRESS ── */
+.phase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-bottom: 32px; }
+
+.phase-card {
+  border: 1px solid var(--grey-light);
+  background: #fff;
+  padding: 20px;
+  cursor: pointer;
+  transition: box-shadow .2s;
+  position: relative;
+}
+
+.phase-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+
+.phase-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.phase-badge { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
+.phase-pct { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--amber); }
+
+.phase-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+.phase-sub { font-size: 13px; color: var(--grey); font-style: italic; margin-bottom: 12px; }
+
+.progress-bar { height: 6px; background: var(--grey-light); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; background: var(--amber); transition: width .5s; }
+
+.phase-meta { display: flex; gap: 12px; margin-top: 10px; }
+.phase-meta-item { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--grey); }
+
+/* ── BOOK LIST ── */
+.book-list { margin-top: 24px; }
+
+.book-item {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 16px;
+  align-items: start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--grey-light);
+  transition: background .15s;
+}
+
+.book-item:hover { background: var(--amber-pale); margin: 0 -12px; padding: 16px 12px; }
+
+.book-seq {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--amber);
+  opacity: .5;
+  line-height: 1;
+  text-align: right;
+}
+
+.book-seq.done { opacity: 1; color: var(--green); }
+
+.book-info {}
+.book-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+.book-title.done { text-decoration: line-through; color: var(--grey); }
+.book-author { font-size: 13px; color: var(--grey); font-style: italic; margin-bottom: 6px; }
+.book-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.book-tag { font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 6px; background: var(--grey-light); color: var(--slate); border-radius: 2px; letter-spacing: .5px; text-transform: uppercase; }
+.book-tag.must { background: var(--ink); color: #fff; }
+.book-tag.life { background: var(--amber); color: #fff; }
+.book-tag.studio { background: var(--green); color: #fff; }
+.book-tag.hard { background: #8b2020; color: #fff; }
+
+.book-controls { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+
+.status-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border: 1px solid var(--grey-light);
+  background: none;
+  cursor: pointer;
+  transition: all .15s;
+  color: var(--grey);
+}
+
+.status-btn:hover { border-color: var(--amber); color: var(--amber); }
+.status-btn.reading { background: var(--amber-pale); border-color: var(--amber); color: var(--amber); }
+.status-btn.done { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+
+/* ── JOURNAL ── */
+.journal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+@media (max-width: 700px) { .journal-grid { grid-template-columns: 1fr; } }
+
+.journal-card { background: #fff; border: 1px solid var(--grey-light); padding: 24px; }
+.journal-card h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 16px; }
+
+.journal-field { margin-bottom: 16px; }
+.journal-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--grey); display: block; margin-bottom: 6px; }
+
+textarea, input, select {
+  width: 100%;
+  font-family: 'EB Garamond', serif;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--grey-light);
+  background: var(--paper);
+  color: var(--ink);
+  resize: vertical;
+  outline: none;
+  transition: border-color .2s;
+}
+
+textarea:focus, input:focus, select:focus { border-color: var(--amber); }
+textarea { min-height: 100px; }
+
+.btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.btn:hover { background: var(--amber); }
+.btn-outline { background: none; border: 1px solid var(--ink); color: var(--ink); }
+.btn-outline:hover { background: var(--amber); border-color: var(--amber); color: #fff; }
+
+/* ── FILTER PILLS ── */
+.filter-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid var(--grey-light);
+  background: none;
+  cursor: pointer;
+  color: var(--slate);
+  border-radius: 2px;
+  transition: all .15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+.filter-pill:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-pale); }
+.filter-pill.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.filter-pill.active:hover { background: var(--amber); border-color: var(--amber); }
+
+/* cat-specific active colours */
+.filter-pill[data-val="must"].active  { background: var(--ink);   border-color: var(--ink); }
+.filter-pill[data-val="life"].active  { background: var(--amber); border-color: var(--amber); }
+.filter-pill[data-val="studio"].active{ background: #1a4d2e;     border-color: #1a4d2e; }
+.filter-pill[data-val="hard"].active  { background: #8b2020;     border-color: #8b2020; }
+
+/* highlight matched book items */
+.book-item.highlight { background: var(--amber-pale); }
+.book-item.dimmed { opacity: .35; }
+
+/* ── JOURNAL ENTRIES ── */
+.entry-list { margin-top: 24px; }
+
+.entry {
+  border-left: 3px solid var(--amber);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  background: #fff;
+  border-radius: 0 4px 4px 0;
+}
+
+.entry-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.entry-book { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; }
+.entry-date { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--grey); }
+.entry-type { font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 8px; background: var(--amber-pale); color: var(--amber); text-transform: uppercase; letter-spacing: 1px; }
+
+.entry-body { font-size: 15px; color: var(--slate); line-height: 1.7; }
+.entry-sketch { font-size: 13px; color: var(--grey); font-style: italic; margin-top: 8px; }
+
+.entry-delete { float: right; background: none; border: none; color: var(--grey); cursor: pointer; font-size: 18px; }
+.entry-delete:hover { color: #8b2020; }
+
+/* ── DASHBOARD ── */
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+
+.dash-card { background: #fff; border: 1px solid var(--grey-light); padding: 20px; text-align: center; }
+.dash-num { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 700; color: var(--amber); display: block; line-height: 1; margin-bottom: 4px; }
+.dash-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--grey); }
+
+.activity-log { background: #fff; border: 1px solid var(--grey-light); padding: 24px; margin-top: 24px; }
+.activity-log h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 16px; }
+.log-item { display: flex; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--grey-light); font-size: 14px; align-items: center; }
+.log-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); flex-shrink: 0; }
+.log-text { flex: 1; }
+.log-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--grey); }
+
+/* ── MANIFESTO ── */
+.manifesto-area { background: #fff; border: 1px solid var(--grey-light); padding: 32px; }
+.manifesto-area h3 { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 8px; }
+.manifesto-area .sub { font-size: 14px; color: var(--grey); font-style: italic; margin-bottom: 24px; }
+.manifesto-area textarea { min-height: 200px; font-size: 16px; }
+
+.prompt-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 20px 0; }
+.prompt-card { background: var(--amber-pale); border: 1px solid var(--amber-light); padding: 14px 16px; cursor: pointer; transition: background .15s; }
+.prompt-card:hover { background: var(--amber-light); }
+.prompt-card-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+.prompt-card-text { font-size: 14px; color: var(--slate); }
+
+/* ── BOOK DETAIL MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--paper);
+  max-width: 600px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 32px;
+  position: relative;
+}
+.modal-close { position: absolute; top: 16px; right: 20px; font-size: 24px; cursor: pointer; background: none; border: none; color: var(--grey); }
+.modal-close:hover { color: var(--ink); }
+.modal h2 { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 4px; }
+.modal-author { font-size: 14px; color: var(--grey); font-style: italic; margin-bottom: 16px; }
+.modal-section { margin-bottom: 20px; }
+.modal-section-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); margin-bottom: 8px; }
+.modal-section p { font-size: 15px; color: var(--slate); line-height: 1.7; }
+.modal-notes-area { width: 100%; }
+.modal-save { margin-top: 12px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .content { padding: 20px 16px; }
+  .book-item { grid-template-columns: 32px 1fr; }
+  .book-controls { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-title">The <span>Architecture</span> Academy</div>
+    <div class="header-sub">Tausif Al Mukit &mdash; BUET &mdash; Personal Reading System</div>
+  </div>
+  <div class="header-stats">
+    <div class="stat"><span class="stat-num" id="stat-done">0</span><span class="stat-label">Completed</span></div>
+    <div class="stat"><span class="stat-num" id="stat-reading">0</span><span class="stat-label">Reading Now</span></div>
+    <div class="stat"><span class="stat-num" id="stat-entries">0</span><span class="stat-label">Journal Entries</span></div>
+    <div class="stat"><span class="stat-num" id="stat-phase">0</span><span class="stat-label">Current Phase</span></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showPanel('dashboard')">Dashboard</button>
+  <button class="tab" onclick="showPanel('books')">Reading Sequence</button>
+  <button class="tab" onclick="showPanel('journal')">Study Journal</button>
+  <button class="tab" onclick="showPanel('manifesto')">Design Manifesto</button>
+  <button class="tab" onclick="showPanel('exercises')">Studio Exercises</button>
+</div>
+
+<!-- ══════════ DASHBOARD PANEL ══════════ -->
+<div class="content panel active" id="panel-dashboard">
+
+  <div class="dashboard-grid">
+    <div class="dash-card"><span class="dash-num" id="d-total">46</span><span class="dash-label">Total Sequence Books</span></div>
+    <div class="dash-card"><span class="dash-num" id="d-done">0</span><span class="dash-label">Books Completed</span></div>
+    <div class="dash-card"><span class="dash-num" id="d-reading">0</span><span class="dash-label">Currently Reading</span></div>
+    <div class="dash-card"><span class="dash-num" id="d-journals">0</span><span class="dash-label">Journal Entries</span></div>
+    <div class="dash-card"><span class="dash-num" id="d-streak">0</span><span class="dash-label">Day Streak</span></div>
+    <div class="dash-card"><span class="dash-num" id="d-phase">0</span><span class="dash-label">Active Phase</span></div>
+  </div>
+
+  <h3 style="font-family:'Playfair Display',serif;font-size:22px;margin-bottom:16px;">Phase Overview</h3>
+  <div class="phase-grid" id="phase-overview"></div>
+
+  <div class="activity-log">
+    <h3>Recent Activity</h3>
+    <div id="activity-list"><div style="color:var(--grey);font-size:14px;font-style:italic;padding:16px 0;">No activity yet. Start reading and logging!</div></div>
+  </div>
+
+</div>
+
+<!-- ══════════ BOOKS PANEL ══════════ -->
+<div class="content panel" id="panel-books">
+
+  <div style="margin-bottom:28px;">
+    <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:4px;">Complete Reading Sequence</h2>
+    <p style="color:var(--grey);font-style:italic;font-size:15px;margin-bottom:24px;">46 books in exact cognitive order. Click any book to add notes. Use filters to explore by category.</p>
+
+    <!-- FILTER PANEL -->
+    <div id="filter-panel" style="background:#fff;border:1px solid var(--grey-light);padding:20px 24px;">
+
+      <!-- Row 1: Status -->
+      <div style="margin-bottom:16px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin-bottom:8px;">Status</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="status-filters">
+          <button class="filter-pill active" data-group="status" data-val="all" onclick="handleFilter('status','all',this)">All Books</button>
+          <button class="filter-pill" data-group="status" data-val="unread" onclick="handleFilter('status','unread',this)">Unread</button>
+          <button class="filter-pill" data-group="status" data-val="reading" onclick="handleFilter('status','reading',this)">Currently Reading</button>
+          <button class="filter-pill" data-group="status" data-val="done" onclick="handleFilter('status','done',this)">Completed</button>
+        </div>
+      </div>
+
+      <!-- Row 2: Category Tags -->
+      <div style="margin-bottom:16px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin-bottom:8px;">Category</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="category-filters">
+          <button class="filter-pill cat-pill" data-group="cat" data-val="all" onclick="handleFilter('cat','all',this)">All Categories</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="must" onclick="handleFilter('cat','must',this)">
+            <span style="display:inline-block;width:8px;height:8px;background:var(--ink);border-radius:50%;margin-right:4px;"></span>Must Read
+          </button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="life" onclick="handleFilter('cat','life',this)">
+            <span style="display:inline-block;width:8px;height:8px;background:var(--amber);border-radius:50%;margin-right:4px;"></span>Life-Changing
+          </button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="studio" onclick="handleFilter('cat','studio',this)">
+            <span style="display:inline-block;width:8px;height:8px;background:#1a4d2e;border-radius:50%;margin-right:4px;"></span>Studio Bible
+          </button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="hard" onclick="handleFilter('cat','hard',this)">
+            <span style="display:inline-block;width:8px;height:8px;background:#8b2020;border-radius:50%;margin-right:4px;"></span>Very Hard
+          </button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="theory" onclick="handleFilter('cat','theory',this)">Theory</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="history" onclick="handleFilter('cat','history',this)">History</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="urban" onclick="handleFilter('cat','urban',this)">Urban</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="drawing" onclick="handleFilter('cat','drawing',this)">Drawing</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="technical" onclick="handleFilter('cat','technical',this)">Technical</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="phenom" onclick="handleFilter('cat','phenom',this)">Phenomenology</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="research" onclick="handleFilter('cat','research',this)">Research</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="fiction" onclick="handleFilter('cat','fiction',this)">Fiction</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="reference" onclick="handleFilter('cat','reference',this)">Reference</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="accessible" onclick="handleFilter('cat','accessible',this)">Accessible</button>
+          <button class="filter-pill cat-pill" data-group="cat" data-val="visual" onclick="handleFilter('cat','visual',this)">Visual</button>
+        </div>
+      </div>
+
+      <!-- Row 3: Phase -->
+      <div style="margin-bottom:16px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin-bottom:8px;">Phase</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="phase-filters">
+          <button class="filter-pill" data-group="phase" data-val="all" onclick="handleFilter('phase','all',this)">All Phases</button>
+          <button class="filter-pill" data-group="phase" data-val="0" onclick="handleFilter('phase','0',this)" style="border-color:#6b2d0a;color:#6b2d0a;">0 — Awakening</button>
+          <button class="filter-pill" data-group="phase" data-val="1" onclick="handleFilter('phase','1',this)" style="border-color:#1a4020;color:#1a4020;">1 — Drawing</button>
+          <button class="filter-pill" data-group="phase" data-val="2" onclick="handleFilter('phase','2',this)" style="border-color:#0a3d6b;color:#0a3d6b;">2 — Analysis</button>
+          <button class="filter-pill" data-group="phase" data-val="3" onclick="handleFilter('phase','3',this)" style="border-color:#5c1a6b;color:#5c1a6b;">3 — Phenomenology</button>
+          <button class="filter-pill" data-group="phase" data-val="4" onclick="handleFilter('phase','4',this)" style="border-color:#6b4a0a;color:#6b4a0a;">4 — Construction</button>
+          <button class="filter-pill" data-group="phase" data-val="5" onclick="handleFilter('phase','5',this)" style="border-color:#1a4d4d;color:#1a4d4d;">5 — History</button>
+          <button class="filter-pill" data-group="phase" data-val="6" onclick="handleFilter('phase','6',this)" style="border-color:#4d1a20;color:#4d1a20;">6 — Theory</button>
+          <button class="filter-pill" data-group="phase" data-val="7" onclick="handleFilter('phase','7',this)" style="border-color:#1a2d4d;color:#1a2d4d;">7 — Advanced</button>
+        </div>
+      </div>
+
+      <!-- Active filter + result count -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding-top:12px;border-top:1px solid var(--grey-light);">
+        <div id="active-filter-display" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber);">Showing all 46 books</div>
+        <button onclick="resetAllFilters()" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:none;border:1px solid var(--grey-light);padding:4px 12px;cursor:pointer;color:var(--grey);">Reset All Filters</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="book-list" id="book-list"></div>
+</div>
+
+<!-- ══════════ JOURNAL PANEL ══════════ -->
+<div class="content panel" id="panel-journal">
+
+  <div class="journal-grid">
+    <div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:24px;">Study Journal</h2>
+
+      <div class="journal-card">
+        <h3>New Entry</h3>
+
+        <div class="journal-field">
+          <label class="journal-label">Book</label>
+          <select id="j-book">
+            <option value="">— Select a book —</option>
+          </select>
+        </div>
+
+        <div class="journal-field">
+          <label class="journal-label">Entry Type</label>
+          <select id="j-type">
+            <option value="annotation">Annotation / Key Idea</option>
+            <option value="argument">Argument Response</option>
+            <option value="sketch">Sketch Description</option>
+            <option value="connection">Book Connection</option>
+            <option value="dhaka">Dhaka Application</option>
+            <option value="studio">Studio Application</option>
+            <option value="question">Open Question</option>
+          </select>
+        </div>
+
+        <div class="journal-field">
+          <label class="journal-label">Your Note</label>
+          <textarea id="j-body" placeholder="Write your thought, annotation, or spatial observation here..."></textarea>
+        </div>
+
+        <div class="journal-field">
+          <label class="journal-label">Sketch / Drawing Description (optional)</label>
+          <textarea id="j-sketch" placeholder="Describe a sketch you made alongside this reading..." style="min-height:60px;"></textarea>
+        </div>
+
+        <button class="btn" onclick="saveJournalEntry()">Save Entry</button>
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:22px;">All Entries</h2>
+        <span id="entry-count" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--grey);">0 entries</span>
+      </div>
+      <div id="entry-list"><div style="color:var(--grey);font-size:14px;font-style:italic;">No entries yet. Start annotating your reading.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MANIFESTO PANEL ══════════ -->
+<div class="content panel" id="panel-manifesto">
+
+  <h2 style="font-family:'Playfair Display',serif;font-size:32px;margin-bottom:8px;">Your Design Manifesto</h2>
+  <p style="color:var(--grey);font-style:italic;font-size:16px;margin-bottom:32px;">Every great architect has a position. This is where yours takes shape. It will change as you read and build — that is expected.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;" id="manifesto-fields">
+
+    <div class="manifesto-area">
+      <h3>My Core Belief About Architecture</h3>
+      <div class="sub">What do you believe architecture is fundamentally for?</div>
+      <textarea id="m-belief" placeholder="Architecture is..." oninput="saveManifesto()"></textarea>
+    </div>
+
+    <div class="manifesto-area">
+      <h3>My Design Values (3–5 words)</h3>
+      <div class="sub">The principles that will guide every design decision.</div>
+      <textarea id="m-values" placeholder="e.g. Light / Memory / Human Scale / Material Honesty / Place..." oninput="saveManifesto()"></textarea>
+    </div>
+
+    <div class="manifesto-area">
+      <h3>My Position on Dhaka</h3>
+      <div class="sub">What does Dhaka need architecturally, and what is your role?</div>
+      <textarea id="m-dhaka" placeholder="Dhaka's architecture needs..." oninput="saveManifesto()"></textarea>
+    </div>
+
+    <div class="manifesto-area">
+      <h3>Architects I Am In Conversation With</h3>
+      <div class="sub">Which thinkers or architects do you align with — or argue against?</div>
+      <textarea id="m-convo" placeholder="I agree with Zumthor that... I disagree with Le Corbusier because..." oninput="saveManifesto()"></textarea>
+    </div>
+
+    <div class="manifesto-area" style="grid-column:1/-1;">
+      <h3>My Full Design Manifesto</h3>
+      <div class="sub">300–500 words. What do you stand for as an architect? Use the language from the books you have read.</div>
+      <textarea id="m-full" placeholder="Write your manifesto here..." style="min-height:250px;" oninput="saveManifesto()"></textarea>
+    </div>
+  </div>
+
+  <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:16px;">Writing Prompts</h3>
+  <div class="prompt-cards">
+    <div class="prompt-card" onclick="addPrompt('What is the genius loci of the site I most want to design for?')">
+      <div class="prompt-card-label">From Norberg-Schulz</div>
+      <div class="prompt-card-text">What is the genius loci of the site I most want to design for?</div>
+    </div>
+    <div class="prompt-card" onclick="addPrompt('If Zumthor asked me: what atmosphere does your design create?')">
+      <div class="prompt-card-label">From Zumthor</div>
+      <div class="prompt-card-text">What atmosphere does my design create — and how?</div>
+    </div>
+    <div class="prompt-card" onclick="addPrompt('What would Jane Jacobs say about the neighbourhood I am designing in?')">
+      <div class="prompt-card-label">From Jacobs</div>
+      <div class="prompt-card-text">What would Jane Jacobs say about my neighbourhood?</div>
+    </div>
+    <div class="prompt-card" onclick="addPrompt('Which Venturi contradiction exists in my design — and is it an honest one?')">
+      <div class="prompt-card-label">From Venturi</div>
+      <div class="prompt-card-text">Which contradictions exist in my design — and are they honest?</div>
+    </div>
+    <div class="prompt-card" onclick="addPrompt('What pattern from A Pattern Language is most violated in Dhaka today?')">
+      <div class="prompt-card-label">From Alexander</div>
+      <div class="prompt-card-text">What pattern from A Pattern Language is most violated in Dhaka?</div>
+    </div>
+    <div class="prompt-card" onclick="addPrompt('My architecture is a reply to Le Corbusier in the following way:')">
+      <div class="prompt-card-label">From Le Corbusier</div>
+      <div class="prompt-card-text">My architecture is a reply to Le Corbusier in the following way:</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ EXERCISES PANEL ══════════ -->
+<div class="content panel" id="panel-exercises">
+
+  <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:8px;">Studio Exercises</h2>
+  <p style="color:var(--grey);font-style:italic;font-size:16px;margin-bottom:32px;">Practical exercises that connect your reading directly to your studio work and the city around you.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
+
+    <div style="background:#fff;border:1px solid var(--grey-light);padding:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Phase 2 — Analysis</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:10px;">The X-Ray Analysis</div>
+      <p style="font-size:14px;color:var(--slate);margin-bottom:12px;">Choose any canonical building. Draw 5 diagrams using the Precedents in Architecture method: 1. Natural light strategy 2. Movement/circulation 3. Structure 4. Unit/repetition 5. Massing/hierarchy. Do NOT copy the book's diagrams — derive them yourself from plans and sections.</p>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grey);">Books: Precedents in Architecture · Analysing Architecture</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--grey-light);padding:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Phase 3 — Phenomenology</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:10px;">The Sensory Map</div>
+      <p style="font-size:14px;color:var(--slate);margin-bottom:12px;">Visit any building or urban space in Dhaka. Spend 30 minutes and document it using ONLY non-visual language — describe sounds, smells, temperature, tactile surfaces, the quality of air. No visual descriptions allowed. Then sketch what you experienced. Apply Zumthor's 9 atmospheres as your checklist.</p>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grey);">Books: Atmospheres · Experiencing Architecture · The Eyes of the Skin</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--grey-light);padding:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Phase 3 — Imagination</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:10px;">The Calvino City</div>
+      <p style="font-size:14px;color:var(--slate);margin-bottom:12px;">Invent your own city in the style of Calvino's Invisible Cities. It must be named after a quality (not a place name), and it must be described in exactly 150 words. Then make a section drawing of that city. After drawing it, ask: what does this city actually want to be in architectural terms?</p>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grey);">Books: Invisible Cities · The Poetics of Space</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--grey-light);padding:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Phase 4 — Construction</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:10px;">The Detail Philosophy</div>
+      <p style="font-size:14px;color:var(--slate);margin-bottom:12px;">Draw one construction detail at 1:5 scale for your current studio project. Then write 200 words explaining the philosophical position embedded in that detail. Why this material? Why this connection method? What does the detail say about your values? Reference at least one book from Phase 4.</p>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grey);">Books: Building Construction Illustrated · Wood and Wood Joints · Architectural Detailing</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--grey-light);padding:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Phase 6 — Theory</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:10px;">The Dhaka Pattern Survey</div>
+      <p style="font-size:14px;color:var(--slate);margin-bottom:12px;">Open A Pattern Language. Select 10 patterns that Dhaka either fulfils beautifully or violates catastrophically. For each pattern, find a specific street, building, or neighbourhood in Dhaka and photograph or sketch it. Write one sentence of analysis per pattern. This is the beginning of a publishable research project.</p>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grey);">Books: A Pattern Language · Death and Life of Great American Cities</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--grey-light);padding:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Phase 6 — Critical Writing</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:10px;">The Two-Page Critique</div>
+      <p style="font-size:14px;color:var(--slate);margin-bottom:12px;">Choose any recently completed building in Bangladesh. Write a two-page critical analysis using the vocabulary from your theory books. Paragraph 1: Spatial analysis (Unwin method). Paragraph 2: Phenomenological evaluation (Zumthor/Pallasmaa). Paragraph 3: Urban/contextual critique (Rossi/Jacobs). Paragraph 4: Your judgment — does it belong here?</p>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grey);">Books: Analysing Architecture · Atmospheres · Architecture of the City</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--grey-light);padding:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Phase 7 — Advanced</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:10px;">The Lefebvre Walk</div>
+      <p style="font-size:14px;color:var(--slate);margin-bottom:12px;">Choose a 500m stretch of any Dhaka street. Walk it three times: first as a consumer (how space is perceived), then as a planner (how it was conceived), then as an inhabitant (how it is lived). Write a 300-word analysis using Lefebvre's three-part framework: perceived / conceived / lived space.</p>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grey);">Books: The Production of Space · Space and Place (Yi-Fu Tuan)</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--grey-light);padding:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Weekly Habit</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:10px;">The 15-Minute Sketch Rule</div>
+      <p style="font-size:14px;color:var(--slate);margin-bottom:12px;">Every single day, sketch for 15 minutes without any goal. Not for a project. Not for an assignment. Just draw what you see, what you imagine, what you read. After 365 days you will have a complete visual archive of your intellectual year — more valuable than any portfolio piece.</p>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grey);">Books: Freehand Sketching (Laseau) · Design Drawing (Ching)</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOOK DETAIL MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <h2 id="modal-title"></h2>
+    <div class="modal-author" id="modal-author"></div>
+    <div class="modal-section">
+      <div class="modal-section-label">Why This Book — When</div>
+      <p id="modal-why"></p>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-label">Your Notes on This Book</div>
+      <textarea class="modal-notes-area" id="modal-notes" placeholder="Write your annotations, key ideas, sketches, or arguments here..." style="min-height:120px;"></textarea>
+      <button class="btn modal-save" onclick="saveModalNotes()">Save Notes</button>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <button class="btn" onclick="setStatusFromModal('reading')">Mark as Reading</button>
+      <button class="btn btn-outline" onclick="setStatusFromModal('done')">Mark as Done</button>
+      <button class="btn btn-outline" onclick="setStatusFromModal('unread')">Reset</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+
+const PHASES = [
+  { id:0, name:'Phase 0: The Awakening', sub:'Why does architecture matter?', color:'#6b2d0a', bg:'#fef3eb', seq:[1,2,3,4,5] },
+  { id:1, name:'Phase 1: Seeing & Drawing', sub:'The grammar of architectural language', color:'#1a4020', bg:'#ebf5ed', seq:[6,7,8,9,10,11,12] },
+  { id:2, name:'Phase 2: Space & Analysis', sub:'Reading buildings analytically', color:'#0a3d6b', bg:'#ebf2fe', seq:[13,14,15,16,17] },
+  { id:3, name:'Phase 3: Phenomenology', sub:'Architecture felt through the senses', color:'#5c1a6b', bg:'#f5eafe', seq:[18,19,20,21,22,23,24,25,26] },
+  { id:4, name:'Phase 4: Construction & Tectonics', sub:'Ideas need matter', color:'#6b4a0a', bg:'#fef8eb', seq:[27,28,29,30] },
+  { id:5, name:'Phase 5: History', sub:'The deep foundations', color:'#1a4d4d', bg:'#ebfaf8', seq:[31,32,33,34,35] },
+  { id:6, name:'Phase 6: Theory & Critique', sub:'Architecture as intellectual argument', color:'#4d1a20', bg:'#faeaeb', seq:[36,37,38,39,40,41,42] },
+  { id:7, name:'Phase 7: Advanced Theory', sub:'The outer edge of architectural thought', color:'#1a2d4d', bg:'#eaeef8', seq:[43,44,45,46] },
+];
+
+const BOOKS = [
+  {seq:1,  title:'Architecture: A Very Short Introduction',          author:'Andrew Ballantyne',          tags:['must','accessible'],             why:'The lens through which all other books are read. 100 pages. Asks: what IS architecture?', phase:0},
+  {seq:2,  title:'101 Things I Learned in Architecture School',      author:'Matthew Frederick',           tags:['must','studio','accessible'],     why:'101 short lessons. Plants the professional mindset immediately. Revisit after every phase.', phase:0},
+  {seq:3,  title:'Architecture Without Architects',                  author:'Bernard Rudofsky',            tags:['life','history','visual'],        why:'First radical act: destroys the myth that architecture requires architects.', phase:0},
+  {seq:4,  title:'The Architecture of Happiness',                    author:'Alain de Botton',             tags:['accessible','phenom'],            why:'Opens the philosophical dimension. Can buildings make us good? Happy? Better humans?', phase:0},
+  {seq:5,  title:'The Story of Buildings',                           author:'Patrick Dillon & Biesty',     tags:['visual','history','accessible'],  why:'Illustrated sections through great buildings. Trains the eye to see through walls.', phase:0},
+  {seq:6,  title:'A Visual Dictionary of Architecture',              author:'Francis D.K. Ching',          tags:['must','reference'],               why:'You cannot speak without vocabulary. Complete illustrated lexicon. Return to it constantly.', phase:1},
+  {seq:7,  title:'Architectural Graphics',                           author:'Francis D.K. Ching',          tags:['must','drawing'],                 why:'Standards of architectural communication — line weights, scales, conventions.', phase:1},
+  {seq:8,  title:'Freehand Sketching + Sketching for Architecture',  author:'Laseau / Travis',             tags:['drawing','studio'],               why:'Sketching is thinking made visible. Practise daily — 15 minutes minimum.', phase:1},
+  {seq:9,  title:'Design Drawing',                                   author:'Francis D.K. Ching',          tags:['must','drawing'],                 why:'Deeper than Architectural Graphics. Where drawing becomes a design tool.', phase:1},
+  {seq:10, title:'Basic Visual Concepts and Principles',             author:'Wallschlaeger & Busic-Snyder',tags:['drawing','theory'],               why:'Visual grammar — point, line, plane, volume as organising principles.', phase:1},
+  {seq:11, title:'Grid Systems in Graphic Design',                   author:'Josef Müller-Brockmann',      tags:['drawing','theory'],               why:"The grid is architecture's most fundamental organising tool.", phase:1},
+  {seq:12, title:'Architecture: Form, Space, and Order',             author:'Francis D.K. Ching',          tags:['must','life','studio','visual'],   why:'The grammar of architectural design. You will use this book your entire career.', phase:1},
+  {seq:13, title:'Analysing Architecture',                           author:'Simon Unwin',                 tags:['must','studio','theory'],          why:'The method of architectural analysis. Use alongside Form, Space, and Order.', phase:2},
+  {seq:14, title:'Operative Design: A Catalog of Spatial Verbs',     author:'Di Mari & Yoo',               tags:['must','studio'],                  why:'70 spatial verbs — tools for generating design. The most useful design tool for studio.', phase:2},
+  {seq:15, title:'Manual of Section',                                author:'Lewis.Tsurumaki.Lewis',       tags:['must','studio','drawing'],         why:"The section is architecture's most powerful drawing. 63 sectional strategies.", phase:2},
+  {seq:16, title:'Precedents in Architecture',                       author:'Clark & Pause',               tags:['must','studio','visual'],          why:'64 canonical buildings analysed through identical diagram sets. Draw every diagram by hand.', phase:2},
+  {seq:17, title:'Twenty-Five Buildings Every Architect Should Understand', author:'Simon Unwin',          tags:['must','studio'],                  why:'Unwin applies his analytical method at extraordinary depth to 25 buildings.', phase:2},
+  {seq:18, title:'Experiencing Architecture',                        author:'Steen Eiler Rasmussen',       tags:['life','must','phenom'],            why:'The most accessible guide to architectural experience ever written. START Phase 3 here.', phase:3},
+  {seq:19, title:'In Praise of Shadows',                             author:"Jun'ichiro Tanizaki",         tags:['life','phenom','accessible'],      why:'The most important 70-page essay ever written about light and architecture.', phase:3},
+  {seq:20, title:'The Poetics of Space',                             author:'Gaston Bachelard',            tags:['life','phenom'],                  why:'Examines intimate spaces of human dwelling through poetry and phenomenology.', phase:3},
+  {seq:21, title:'Thinking Architecture',                            author:'Peter Zumthor',               tags:['life','phenom'],                  why:'Zumthor practises architecture in words. Read after Rasmussen and Tanizaki.', phase:3},
+  {seq:22, title:'Atmospheres',                                      author:'Peter Zumthor',               tags:['life','studio','phenom'],          why:"Zumthor's 9 qualities of atmospheric architecture. Use as a design checklist always.", phase:3},
+  {seq:23, title:'The Eyes of the Skin: Architecture and the Senses',author:'Juhani Pallasmaa',           tags:['life','must','phenom'],            why:'The argument for multi-sensory architecture. Changes how you design forever.', phase:3},
+  {seq:24, title:'Space and Place',                                  author:'Yi-Fu Tuan',                  tags:['phenom','urban'],                  why:'Distinguishes space from place — space is abstract, place is where meaning lives.', phase:3},
+  {seq:25, title:'Genius Loci',                                      author:'Christian Norberg-Schulz',    tags:['must','phenom','theory'],          why:'Formalises phenomenology into architectural theory. Spirit of place as design method.', phase:3},
+  {seq:26, title:'Invisible Cities',                                 author:'Italo Calvino',               tags:['life','fiction'],                  why:'55 imaginary cities — each a meditation on memory, desire, and place.', phase:3},
+  {seq:27, title:'Materials for Architectural Design',               author:'Victoria Ballard Bell',       tags:['technical'],                       why:'After understanding how space feels, understand what it is made of.', phase:4},
+  {seq:28, title:'Building Construction Illustrated',                author:'Francis D.K. Ching',          tags:['must','technical','visual'],        why:'The complete visual guide to how buildings are built. Your construction literacy foundation.', phase:4},
+  {seq:29, title:"The Architect's Studio Companion",                 author:'Edward Allen & Joseph Iano',  tags:['studio','technical'],              why:'Rules of thumb for preliminary structural decisions. The book every student wishes they found earlier.', phase:4},
+  {seq:30, title:'Wood and Wood Joints',                             author:'Zwerger',                     tags:['technical','visual'],              why:'A joint is where architecture becomes philosophy. How you connect materials reveals your values.', phase:4},
+  {seq:31, title:'Vitruvius: The Ten Books on Architecture',         author:'Vitruvius (c. 25 BC)',        tags:['must','history','theory'],          why:'Firmitas, utilitas, venustas. The origin of every architectural debate.', phase:5},
+  {seq:32, title:'Four Books of Architecture',                       author:'Andrea Palladio (1570)',      tags:['must','history'],                  why:'Palladio established the standard of architectural representation we still use today.', phase:5},
+  {seq:33, title:'A History of Architecture',                        author:'Spiro Kostof',                tags:['must','history'],                  why:'Kostof asks WHY buildings were built. Cultural and social grounding.', phase:5},
+  {seq:34, title:'Programs and Manifestoes on 20th-Century Architecture', author:'Ulrich Conrads',         tags:['must','theory','history'],          why:"Primary sources — the actual manifestoes of architecture's revolutionary movements.", phase:5},
+  {seq:35, title:'Modern Architecture Since 1900',                   author:'William J.R. Curtis',         tags:['must','history'],                  why:'The finest comprehensive critical history of modern architecture ever written.', phase:5},
+  {seq:36, title:'Towards a New Architecture',                       author:'Le Corbusier (1923)',         tags:['life','must','theory'],             why:'The most important architectural manifesto of the 20th century.', phase:6},
+  {seq:37, title:'Complexity and Contradiction in Architecture',     author:'Robert Venturi',              tags:['life','must','theory'],             why:"The book that ended Modernism's absolutism. Every sentence is an argument.", phase:6},
+  {seq:38, title:'Modern Architecture: A Critical History',          author:'Kenneth Frampton',            tags:['life','must','theory','history'],   why:'The single most important book in your collection. Annotate every page.', phase:6},
+  {seq:39, title:'The Death and Life of Great American Cities',      author:'Jane Jacobs',                 tags:['life','urban'],                    why:'Destroyed the ideology of modern urban planning with field observation.', phase:6},
+  {seq:40, title:'The Architecture of the City',                     author:'Aldo Rossi',                  tags:['must','urban','theory'],            why:'Theory of collective memory — cities built on layers of historical types.', phase:6},
+  {seq:41, title:'The Timeless Way of Building',                     author:'Christopher Alexander',       tags:['must','theory'],                   why:'Theory of patterns — WHY they matter. Read before the catalogue.', phase:6},
+  {seq:42, title:'A Pattern Language',                               author:'Christopher Alexander',       tags:['life','must','urban','theory'],     why:'253 patterns — the closest thing to a universal human-centred design language.', phase:6},
+  {seq:43, title:'Delirious New York',                               author:'Rem Koolhaas',               tags:['life','urban','theory'],            why:'Koolhaas invented a new genre. Essential for architects in dense Asian cities.', phase:7},
+  {seq:44, title:'Architecture and Disjunction',                     author:'Bernard Tschumi',             tags:['hard','theory'],                   why:'Space, movement, and event — always in productive contradiction. One essay per week.', phase:7},
+  {seq:45, title:'The Production of Space',                          author:'Henri Lefebvre',              tags:['hard','theory','urban'],            why:'Space is produced by political forces. The hardest book. 10 pages per day maximum.', phase:7},
+  {seq:46, title:'Architectural Research Methods',                   author:'Linda Groat & David Wang',    tags:['must','research'],                  why:'The complete methodology of architectural research. Read before writing your thesis.', phase:7},
+];
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+
+let state = {
+  bookStatus: {}, // seq -> 'unread' | 'reading' | 'done'
+  bookNotes: {},  // seq -> string
+  journalEntries: [], // [{id, bookSeq, bookTitle, type, body, sketch, date}]
+  manifesto: { belief:'', values:'', dhaka:'', convo:'', full:'' },
+  lastActivity: [],
+  streak: 0,
+  lastDate: null,
+};
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('tausif_arch_state');
+    if (s) state = { ...state, ...JSON.parse(s) };
+  } catch(e) {}
+}
+
+function saveState() {
+  try { localStorage.setItem('tausif_arch_state', JSON.stringify(state)); } catch(e) {}
+  updateStats();
+}
+
+// ══════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════
+
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'dashboard') renderDashboard();
+}
+
+// ══════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════
+
+function updateStats() {
+  const done = Object.values(state.bookStatus).filter(s => s === 'done').length;
+  const reading = Object.values(state.bookStatus).filter(s => s === 'reading').length;
+  const entries = state.journalEntries.length;
+  const phase = getCurrentPhase();
+
+  ['stat-done','d-done'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = done; });
+  ['stat-reading','d-reading'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = reading; });
+  ['stat-entries','d-journals'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = entries; });
+  ['stat-phase','d-phase'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = phase; });
+  document.getElementById('d-streak').textContent = state.streak || 0;
+  document.getElementById('d-total').textContent = BOOKS.length;
+}
+
+function getCurrentPhase() {
+  for (let p = 7; p >= 0; p--) {
+    const ph = PHASES[p];
+    const anyDone = ph.seq.some(s => state.bookStatus[s] === 'done' || state.bookStatus[s] === 'reading');
+    if (anyDone) return p;
+  }
+  return 0;
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+
+function renderDashboard() {
+  const container = document.getElementById('phase-overview');
+  container.innerHTML = '';
+  PHASES.forEach(ph => {
+    const books = BOOKS.filter(b => ph.seq.includes(b.seq));
+    const done = books.filter(b => state.bookStatus[b.seq] === 'done').length;
+    const reading = books.filter(b => state.bookStatus[b.seq] === 'reading').length;
+    const pct = Math.round((done / books.length) * 100);
+    const card = document.createElement('div');
+    card.className = 'phase-card';
+    card.style.borderLeft = `4px solid ${ph.color}`;
+    card.style.background = '#fff';
+    card.innerHTML = `
+      <div class="phase-card-header">
+        <span class="phase-badge" style="background:${ph.bg};color:${ph.color};">Phase ${ph.id}</span>
+        <span class="phase-pct">${pct}%</span>
+      </div>
+      <div class="phase-name">${ph.name}</div>
+      <div class="phase-sub">${ph.sub}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${ph.color};"></div></div>
+      <div class="phase-meta">
+        <span class="phase-meta-item">✅ ${done} done</span>
+        <span class="phase-meta-item">📖 ${reading} reading</span>
+        <span class="phase-meta-item">📚 ${books.length} total</span>
+      </div>
+    `;
+    card.onclick = () => { showPanel('books'); document.querySelectorAll('.tab')[1].classList.add('active'); document.querySelectorAll('.tab')[0].classList.remove('active'); scrollToPhase(ph.id); };
+    container.appendChild(card);
+  });
+
+  const actEl = document.getElementById('activity-list');
+  if (state.lastActivity && state.lastActivity.length > 0) {
+    actEl.innerHTML = state.lastActivity.slice(-8).reverse().map(a =>
+      `<div class="log-item"><div class="log-dot"></div><div class="log-text">${a.text}</div><div class="log-time">${a.time}</div></div>`
+    ).join('');
+  }
+}
+
+function logActivity(text) {
+  if (!state.lastActivity) state.lastActivity = [];
+  const now = new Date();
+  state.lastActivity.push({ text, time: now.toLocaleDateString('en-GB', {day:'numeric',month:'short'}) + ' ' + now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'}) });
+  if (state.lastActivity.length > 20) state.lastActivity.shift();
+
+  // streak
+  const today = now.toDateString();
+  if (state.lastDate !== today) {
+    state.lastDate = today;
+    state.streak = (state.streak || 0) + 1;
+  }
+}
+
+// ══════════════════════════════════════════════
+// BOOK LIST
+// ══════════════════════════════════════════════
+
+// ── Active filters state ──
+const activeFilters = { status: 'all', cat: 'all', phase: 'all' };
+
+function handleFilter(group, val, btn) {
+  // Toggle: clicking the already-active filter resets it to 'all'
+  if (activeFilters[group] === val && val !== 'all') {
+    activeFilters[group] = 'all';
+    // reset pills in this group
+    document.querySelectorAll(`.filter-pill[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
+    document.querySelector(`.filter-pill[data-group="${group}"][data-val="all"]`).classList.add('active');
+  } else {
+    activeFilters[group] = val;
+    document.querySelectorAll(`.filter-pill[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderBookList();
+}
+
+function resetAllFilters() {
+  activeFilters.status = 'all';
+  activeFilters.cat    = 'all';
+  activeFilters.phase  = 'all';
+  document.querySelectorAll('.filter-pill').forEach(p => {
+    p.classList.remove('active');
+    if (p.dataset.val === 'all') p.classList.add('active');
+  });
+  renderBookList();
+}
+
+function bookMatchesFilters(book) {
+  const status = state.bookStatus[book.seq] || 'unread';
+  // status filter
+  if (activeFilters.status !== 'all' && status !== activeFilters.status) return false;
+  // phase filter
+  if (activeFilters.phase !== 'all' && String(book.phase) !== activeFilters.phase) return false;
+  // category / tag filter
+  if (activeFilters.cat !== 'all' && !book.tags.includes(activeFilters.cat)) return false;
+  return true;
+}
+
+function updateFilterDisplay(matchCount) {
+  const parts = [];
+  if (activeFilters.status !== 'all') parts.push(activeFilters.status);
+  if (activeFilters.phase  !== 'all') parts.push(`Phase ${activeFilters.phase}`);
+  if (activeFilters.cat    !== 'all') parts.push(activeFilters.cat);
+  const el = document.getElementById('active-filter-display');
+  if (el) {
+    el.textContent = parts.length
+      ? `Showing ${matchCount} book${matchCount !== 1 ? 's' : ''} — ${parts.join(' · ')}`
+      : `Showing all ${matchCount} books`;
+  }
+}
+
+function renderBookList() {
+  const container = document.getElementById('book-list');
+  container.innerHTML = '';
+
+  const isFiltered = activeFilters.status !== 'all' || activeFilters.cat !== 'all' || activeFilters.phase !== 'all';
+  let matchCount = 0;
+  let currentPhase = -1;
+  let phaseHasMatch = false;
+  let pendingDivider = null;
+
+  BOOKS.forEach(book => {
+    const matches = bookMatchesFilters(book);
+    if (matches) matchCount++;
+
+    // Phase divider — only render if at least one book in phase matches
+    if (book.phase !== currentPhase) {
+      currentPhase = book.phase;
+      phaseHasMatch = false;
+      pendingDivider = book; // store first book of phase; render divider lazily
+    }
+
+    if (!matches) return; // skip non-matching books
+
+    // Render the phase divider now (first time we have a match in this phase)
+    if (!phaseHasMatch) {
+      phaseHasMatch = true;
+      const ph = PHASES[pendingDivider.phase];
+      const divider = document.createElement('div');
+      divider.id = `phase-anchor-${ph.id}`;
+      divider.style.cssText = 'display:flex;align-items:center;gap:16px;margin:32px 0 8px;';
+      divider.innerHTML = `
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:${ph.color};white-space:nowrap;">${ph.name}</span>
+        <div style="flex:1;height:1px;background:var(--grey-light);"></div>
+      `;
+      container.appendChild(divider);
+    }
+
+    const status = state.bookStatus[book.seq] || 'unread';
+    const item = document.createElement('div');
+    item.className = 'book-item' + (isFiltered && matches ? ' highlight' : '');
+
+    // Build tag HTML — highlight the active category tag
+    const tagHTML = book.tags.map(t => {
+      const isActive = t === activeFilters.cat;
+      return `<span class="book-tag ${t}" style="${isActive ? 'outline:2px solid var(--amber);outline-offset:1px;' : ''}" onclick="handleFilter('cat','${t}',document.querySelector('.filter-pill[data-val=\\'${t}\\']'))" title="Filter by ${t}" style="cursor:pointer;">${t}</span>`;
+    }).join('');
+
+    // Phase badge
+    const ph = PHASES[book.phase];
+    const phaseBadge = `<span style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;background:${ph.bg};color:${ph.color};border-radius:2px;cursor:pointer;" onclick="handleFilter('phase','${book.phase}',document.querySelector('.filter-pill[data-val=\\'${book.phase}\\']'))" title="Filter Phase ${book.phase}">Ph.${book.phase}</span>`;
+
+    item.innerHTML = `
+      <div class="book-seq ${status === 'done' ? 'done' : ''}">${book.seq}</div>
+      <div class="book-info">
+        <div class="book-title ${status === 'done' ? 'done' : ''}">${book.title}</div>
+        <div class="book-author">${book.author}</div>
+        <div class="book-tags" style="gap:5px;">${phaseBadge}${tagHTML}</div>
+        ${state.bookNotes[book.seq] ? `<div style="margin-top:8px;font-size:13px;color:var(--slate);font-style:italic;border-left:2px solid var(--amber);padding-left:8px;">${state.bookNotes[book.seq].substring(0,120)}${state.bookNotes[book.seq].length > 120 ? '…' : ''}</div>` : ''}
+      </div>
+      <div class="book-controls">
+        <button class="status-btn ${status === 'reading' ? 'reading' : ''}" onclick="setStatus(${book.seq},'reading',event)">Reading</button>
+        <button class="status-btn ${status === 'done' ? 'done' : ''}"    onclick="setStatus(${book.seq},'done',event)">Done</button>
+        <button class="status-btn" onclick="openModal(${book.seq})">Notes</button>
+      </div>
+    `;
+    item.querySelector('.book-title').style.cursor = 'pointer';
+    item.querySelector('.book-title').onclick = () => openModal(book.seq);
+    container.appendChild(item);
+  });
+
+  // Empty state
+  if (matchCount === 0) {
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--grey);font-style:italic;">No books match the current filters. <button onclick="resetAllFilters()" style="color:var(--amber);background:none;border:none;cursor:pointer;font-style:normal;text-decoration:underline;">Reset filters</button></div>`;
+  }
+
+  updateFilterDisplay(matchCount);
+}
+
+// legacy shim so other code still works
+function filterBooks(filter) {
+  activeFilters.status = filter;
+  renderBookList();
+}
+
+function setStatus(seq, status, e) {
+  if (e) e.stopPropagation();
+  const current = state.bookStatus[seq] || 'unread';
+  state.bookStatus[seq] = (current === status) ? 'unread' : status;
+  const book = BOOKS.find(b => b.seq === seq);
+  logActivity(`${state.bookStatus[seq] === 'unread' ? 'Reset' : state.bookStatus[seq] === 'reading' ? '📖 Started reading' : '✅ Finished'} "${book.title}"`);
+  saveState();
+  renderBookList();
+}
+
+function scrollToPhase(phaseId) {
+  setTimeout(() => {
+    const el = document.getElementById(`phase-anchor-${phaseId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+// ══════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════
+
+let currentModalSeq = null;
+
+function openModal(seq) {
+  const book = BOOKS.find(b => b.seq === seq);
+  if (!book) return;
+  currentModalSeq = seq;
+  document.getElementById('modal-title').textContent = book.title;
+  document.getElementById('modal-author').textContent = book.author;
+  document.getElementById('modal-why').textContent = book.why;
+  document.getElementById('modal-notes').value = state.bookNotes[seq] || '';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) closeModalBtn();
+}
+
+function closeModalBtn() {
+  document.getElementById('modal').classList.remove('open');
+  currentModalSeq = null;
+}
+
+function saveModalNotes() {
+  if (currentModalSeq === null) return;
+  const notes = document.getElementById('modal-notes').value;
+  state.bookNotes[currentModalSeq] = notes;
+  const book = BOOKS.find(b => b.seq === currentModalSeq);
+  logActivity(`Annotated "${book.title}"`);
+  saveState();
+  renderBookList();
+  closeModalBtn();
+}
+
+function setStatusFromModal(status) {
+  if (currentModalSeq === null) return;
+  const current = state.bookStatus[currentModalSeq] || 'unread';
+  state.bookStatus[currentModalSeq] = (current === status) ? 'unread' : status;
+  const book = BOOKS.find(b => b.seq === currentModalSeq);
+  logActivity(`${state.bookStatus[currentModalSeq] === 'unread' ? 'Reset' : state.bookStatus[currentModalSeq] === 'reading' ? '📖 Started' : '✅ Finished'} "${book.title}"`);
+  saveState();
+  renderBookList();
+}
+
+// ══════════════════════════════════════════════
+// JOURNAL
+// ══════════════════════════════════════════════
+
+function populateBookSelect() {
+  const sel = document.getElementById('j-book');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Select a book —</option>';
+  BOOKS.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b.seq;
+    opt.textContent = `${b.seq}. ${b.title}`;
+    sel.appendChild(opt);
+  });
+}
+
+function saveJournalEntry() {
+  const bookSeq = parseInt(document.getElementById('j-book').value);
+  const type = document.getElementById('j-type').value;
+  const body = document.getElementById('j-body').value.trim();
+  const sketch = document.getElementById('j-sketch').value.trim();
+
+  if (!bookSeq || !body) { alert('Please select a book and write something.'); return; }
+
+  const book = BOOKS.find(b => b.seq === bookSeq);
+  const entry = {
+    id: Date.now(),
+    bookSeq,
+    bookTitle: book.title,
+    type,
+    body,
+    sketch,
+    date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+  };
+
+  state.journalEntries.unshift(entry);
+  logActivity(`Journal entry: "${book.title}" — ${type}`);
+  saveState();
+
+  document.getElementById('j-body').value = '';
+  document.getElementById('j-sketch').value = '';
+
+  renderJournal();
+}
+
+function renderJournal() {
+  const list = document.getElementById('entry-list');
+  const count = document.getElementById('entry-count');
+  count.textContent = `${state.journalEntries.length} ${state.journalEntries.length === 1 ? 'entry' : 'entries'}`;
+
+  if (state.journalEntries.length === 0) {
+    list.innerHTML = '<div style="color:var(--grey);font-size:14px;font-style:italic;">No entries yet. Start annotating your reading.</div>';
+    return;
+  }
+
+  list.innerHTML = state.journalEntries.map(e => `
+    <div class="entry">
+      <button class="entry-delete" onclick="deleteEntry(${e.id})">×</button>
+      <div class="entry-meta">
+        <div class="entry-book">${e.bookTitle}</div>
+        <div class="entry-type">${e.type}</div>
+        <div class="entry-date">${e.date}</div>
+      </div>
+      <div class="entry-body">${e.body}</div>
+      ${e.sketch ? `<div class="entry-sketch">✏️ Sketch: ${e.sketch}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function deleteEntry(id) {
+  state.journalEntries = state.journalEntries.filter(e => e.id !== id);
+  saveState();
+  renderJournal();
+}
+
+// ══════════════════════════════════════════════
+// MANIFESTO
+// ══════════════════════════════════════════════
+
+function saveManifesto() {
+  state.manifesto.belief = document.getElementById('m-belief').value;
+  state.manifesto.values = document.getElementById('m-values').value;
+  state.manifesto.dhaka = document.getElementById('m-dhaka').value;
+  state.manifesto.convo = document.getElementById('m-convo').value;
+  state.manifesto.full = document.getElementById('m-full').value;
+  saveState();
+}
+
+function loadManifesto() {
+  if (!state.manifesto) return;
+  const fields = ['belief','values','dhaka','convo','full'];
+  fields.forEach(f => {
+    const el = document.getElementById(`m-${f}`);
+    if (el && state.manifesto[f]) el.value = state.manifesto[f];
+  });
+}
+
+function addPrompt(text) {
+  const el = document.getElementById('m-full');
+  el.value = (el.value ? el.value + '\n\n' : '') + text + '\n';
+  el.focus();
+  saveManifesto();
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+
+function init() {
+  loadState();
+  renderDashboard();
+  renderBookList();
+  populateBookSelect();
+  renderJournal();
+  loadManifesto();
+  updateStats();
+}
+
+init();
+</script>
+</body>
+</html>
